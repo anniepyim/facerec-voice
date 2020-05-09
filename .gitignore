@@ -1,0 +1,5 @@
+dataset/face_detection/*
+resources/face_detection_model/*
+resources/face_detection_output/*
+Repos/*
+.idea/*

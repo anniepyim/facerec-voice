@@ -1,0 +1,10 @@
+pandas
+numpy
+pyaudio
+pvporcupine
+imutils
+opencv-python
+face_recognition
+sklearn
+requests
+pvporcupine

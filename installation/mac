@@ -1,0 +1,12 @@
+xcode-select --install
+brew install cmake
+brew install portaudio
+brew install dlib
+
+pip install --upgrade pip setuptools wheel
+
+brew install libffi
+brew install openssl
+
+python -m pip install --upgrade google-assistant-sdk[samples]
+python -m pip install --upgrade google-auth-oauthlib[tool]

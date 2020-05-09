@@ -1,0 +1,19 @@
+on Linux Ubuntu 20.04
+
+sudo root
+source /venv/bin/activate
+sudo apt update
+sudo apt install build-essential
+sudo apt-get install libasound-dev
+asudo apt-get install python3-dev
+
+(download from portaudio - www.portaudio.com/download)
+
+tar xvfz (the .tgz file)
+cd portaudio
+./configure
+make
+make install
+ldconfig
+pip3 install pyaudio
+pip3 install pvporcupine
