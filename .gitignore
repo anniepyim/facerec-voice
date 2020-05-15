@@ -1,5 +1,8 @@
 dataset/face_detection/*
 resources/face_detection_model/*
 resources/face_detection_output/*
+resources/soundwav/*
+modules/__pycache__/*
+resources/.DS_Store
 Repos/*
 .idea/*
