@@ -8,3 +8,5 @@ face_recognition
 sklearn
 requests
 pvporcupine
+keyboard
+pyttsx3
