@@ -308,13 +308,13 @@ def run():
     api_endpoint = 'embeddedassistant.googleapis.com'
     project_id = "assistantdevice-1f1e8"
     device_model_id = "assistantdevice-1f1e8-ga1-v3slut"
-    device_id = None
+    device_id = 'assistantdevice-1f1e8'
     credentials = os.path.join(click.get_app_dir('google-oauthlib-tool'),
                                'credentials.json')
     device_config = os.path.join(click.get_app_dir('googlesamples-assistant'),
                                  'device_config.json')
     lang = "en-US"
-    display = False
+    display = True
     verbose = False
     input_audio_file = None
     output_audio_file = None
