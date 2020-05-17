@@ -18,12 +18,12 @@ txt = None
 while txt != 'quit':
 
     txt = input("Type something to test this out: ")
-    lang = input("Language?: ")
+    # lang = input("Language?: ")
+    #
+    # if lang == '':
+    #     lang = 'en_US'
 
-    if lang == '':
-        lang = 'en_US'
-
-    payload = {'input': txt, 'lang': lang}
+    payload = {'input': txt, 'lang': 'en_US', 'display': "True"}
     #headers = {'Content-Type': 'application/json;charset=UTF-8'}
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     r = requests.get('http://localhost:8081', params=params)

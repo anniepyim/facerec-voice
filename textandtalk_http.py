@@ -23,18 +23,18 @@ try:
     from googlesamples.assistant.grpc import (
         assistant_helpers,
         audio_helpers,
-        browser_helpers,
         device_helpers
     )
 except (SystemError, ImportError):
     import assistant_helpers
     import audio_helpers
-    import browser_helpers
     import device_helpers
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import unquote
+
+from modules import browser_helpers
 
 import logging
 logger = logging.getLogger()
@@ -106,7 +106,7 @@ class SampleAssistant(object):
 
     @retry(reraise=True, stop=stop_after_attempt(3),
            retry=retry_if_exception(is_grpc_error_unavailable))
-    def assist(self, text_query=None, language_code='en-US'):
+    def assist(self, text_query=None, language_code='en-US', display=None):
         """Send a voice request to the Assistant and playback the response.
 
         Returns: True if conversation should continue.
@@ -116,6 +116,8 @@ class SampleAssistant(object):
         give_audio = True
         device_actions_futures = []
         self.language_code = language_code
+        if display:
+            self.display = display == "True"
 
         def iter_log_assist_requests():
             for c in self.gen_assist_requests(text_query):
@@ -182,9 +184,9 @@ class SampleAssistant(object):
             #     fs = self.device_handler(device_request)
             #     if fs:
             #         device_actions_futures.extend(fs)
-            # if self.display and resp.screen_out.data:
-            #     system_browser = browser_helpers.system_browser
-            #     system_browser.display(resp.screen_out.data)
+            if resp.screen_out.data:
+                system_browser = browser_helpers.system_browser
+                system_browser.display(resp.screen_out.data)
 
         if len(device_actions_futures):
             logger.info('Waiting for device executions to complete.')
@@ -253,8 +255,9 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # Retrieve input text
         input_text = unquote(query_components["input"])
         lang = unquote(query_components["lang"])
+        display = unquote(query_components["display"])
 
-        responses = continue_audio_handler(input_text, lang)
+        responses = continue_audio_handler(input_text, lang, display)
 
         if responses != [None]:
             responses_str = (';').join(responses)
@@ -276,11 +279,11 @@ def recognizeme_audio(s):
 
     return audio
 
-def continue_audio_handler(input_text, lang="en_US"):
+def continue_audio_handler(input_text, lang="en_US", display=None):
 
     response_text_strs = []
 
-    continue_conversation, response_text = assistant.assist(text_query=input_text, language_code=lang)
+    continue_conversation, response_text = assistant.assist(text_query=input_text, language_code=lang, display=display)
     response_text_strs.append(response_text)
 
     if recognizeme_audio(response_text) and continue_conversation:

@@ -66,7 +66,7 @@ def build_face_dataset(person):
 	# vs = VideoStream(usePiCamera=True).start()
 	time.sleep(1.0)
 	total = 0
-	res = ga_handler.call("Talk to Recognize Me")
+	res = ga_handler.call(txt="Talk to Recognize Me", display="False")
 	# loop over the frames from the video stream
 	while res:
 		# grab the frame from the threaded video stream, clone it, (just
@@ -75,15 +75,15 @@ def build_face_dataset(person):
 
 		if total == 0:
 			txt = "Take the first picture"
-			res_dict = ga_handler.call(txt)
+			res_dict = ga_handler.call(txt=txt, display="False")
 			logger.info(res_dict)
 		elif total == 4:
 			txt = "Take the last picture"
-			res_dict = ga_handler.call(txt)
+			res_dict = ga_handler.call(txt=txt, display="False")
 			logger.info(res_dict)
 		else:
 			txt = "Take more pictures"
-			res_dict = ga_handler.call(txt)
+			res_dict = ga_handler.call(txt=txt, display="False")
 			logger.info(res_dict)
 
 

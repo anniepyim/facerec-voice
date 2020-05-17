@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s %(message)s')
 
 
-def call(txt, lang="en-US"):
+def call(txt, lang="en-US", display="True"):
 
     logger.info(txt)
-    payload = {'input': txt, 'lang': lang}
+    payload = {'input': txt, 'lang': lang, 'display': display}
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     r = requests.get('http://localhost:8081', params=params)
 
@@ -20,7 +20,7 @@ def call(txt, lang="en-US"):
 
 def greet(persons, lang="en-US"):
 
-    call("Talk to Recognize Me")
+    call(txt="Talk to Recognize Me", display="False")
 
     txt = "greet " + ",".join(persons)
     response = call(txt)
@@ -29,8 +29,8 @@ def greet(persons, lang="en-US"):
 
 def recognize_me(txt):
 
-    call("Talk to Recognize Me")
-    response = call(txt)
+    call(txt="Talk to Recognize Me", display="False")
+    response = call(txt=txt, display="False")
 
     logger.info(response)
 
