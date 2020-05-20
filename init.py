@@ -56,16 +56,11 @@ def run():
 
     while True:
 
-        # # Run detector forever
-        # detected = infrared_detector.run()
+        # the function stops looping and continue if movement is detected
+        recognizer.detect_motion()
 
+        # motion detcted, detect human faces
         persons = recognizer.run()
-
-        # # response when detected movement
-        # if detected:
-        #
-        #     # detect trained faces
-        #     persons = recognizer.run()
 
         # response when detected known person
         if len(persons) > 0:
@@ -104,7 +99,6 @@ def run():
 
                 lasttalk_time = datetime.datetime.now()
 
-        time.sleep(0.5)
 
 if __name__ == '__main__':
     run()

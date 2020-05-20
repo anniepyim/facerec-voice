@@ -10,10 +10,14 @@ import cv2
 import os
 import face_recognition
 from collections import Counter
-
 from datetime import datetime
 
+import threading
+lock = threading.Lock()
+output_frame = None
+
 from . import ga_handler
+from . import singlemotiondetector
 
 import logging
 logger = logging.getLogger(__name__)
@@ -31,6 +35,8 @@ recognizerPath = os.path.join(os.path.dirname(__file__),
 lePath = os.path.join(os.path.dirname(__file__),
                       "../resources/face_detection_output/le.pickle")
 
+# grab global references to the video stream, output frame, and
+# lock variables
 
 class RecognizerCam():
 
@@ -59,8 +65,70 @@ class RecognizerCam():
         # vs = VideoStream(usePiCamera=True).start()
         time.sleep(warmup_time)
 
+    def detect_motion(self, frameCount=10):
+        # grab global references to the video stream, output frame, and
+        # lock variables
+        global outputFrame, lock
+
+        # initialize the motion detector and the total number of frames
+        # read thus far
+        md = singlemotiondetector.SingleMotionDetector(accumWeight=0.1)
+        total = 0
+
+        # loop over frames from the video stream
+        while True:
+            motion = None
+
+            # read the next frame from the video stream, resize it,
+            # convert the frame to grayscale, and blur it
+            frame = self.vs.read()
+            frame = imutils.resize(frame, width=600)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (7, 7), 0)
+
+            # grab the current timestamp and draw it on the frame
+            timestamp = datetime.now()
+            cv2.putText(frame, timestamp.strftime(
+                "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
+            # if the total number of frames has reached a sufficient
+            # number to construct a reasonable background model, then
+            # continue to process the frame
+            if total > frameCount:
+                # detect motion in the image
+                motion = md.detect(gray)
+
+                # cehck to see if motion was found in the frame
+                if motion is not None:
+                    # unpack the tuple and draw the box surrounding the
+                    # "motion area" on the output frame
+                    (thresh, (minX, minY, maxX, maxY)) = motion
+                    cv2.rectangle(frame, (minX, minY), (maxX, maxY),
+                                  (0, 0, 255), 2)
+
+            # update the background model and increment the total number
+            # of frames read thus far
+            md.update(gray)
+            total += 1
+
+            time.sleep(0.25)
+            # show the output frame
+            # cv2.imshow("Frame", frame)
+            # key = cv2.waitKey(1) & 0xFF
+
+            # acquire the lock, set the output frame, and release the
+            # lock
+            with lock:
+                outputFrame = frame.copy()
+
+            if motion is not None:
+                break
 
     def run(self):
+        # grab global references to the video stream, output frame, and
+        # lock variables
+        global outputFrame, lock
 
         # start the FPS throughput estimator
         fps = FPS().start()
@@ -161,11 +229,15 @@ class RecognizerCam():
             fps.update()
             time.sleep(0.25)
             # show the output frame
-            cv2.imshow("Frame", frame)
-            key = cv2.waitKey(1) & 0xFF
+            # cv2.imshow("Frame", frame)
+            # key = cv2.waitKey(1) & 0xFF
+
+            with lock:
+                outputFrame = frame.copy()
 
             # if the `q` key was pressed, break from the loop
-            if delta.seconds >= self.run_time or key == ord("q"):
+            # if delta.seconds >= self.run_time or key == ord("q"):
+            if delta.seconds >= self.run_time:
                 run_cam = False
 
 
@@ -196,6 +268,9 @@ class RecognizerCam():
         return people_names
 
     def build_face_dataset(self, person):
+        # grab global references to the video stream, output frame, and
+        # lock variables
+        global outputFrame, lock
 
         # initialize the video stream, allow the camera sensor to warm up,
         # and initialize the total number of example faces written to disk
@@ -253,7 +328,11 @@ class RecognizerCam():
                 str(total).zfill(5))])
             cv2.imwrite(p, frame)
             total += 1
-            logger.info("here")
+
+            # acquire the lock, set the output frame, and release the
+            # lock
+            with lock:
+                outputFrame = frame.copy()
 
             # if the `q` key was pressed, break from the loop
             # elif key == ord("q"):
@@ -271,3 +350,29 @@ class RecognizerCam():
         logger.info("Reloading model")
         self.recognizer = pickle.loads(open(recognizerPath, "rb").read())
         self.le = pickle.loads(open(lePath, "rb").read())
+
+    def generate(self):
+        # grab global references to the output frame and lock variables
+        global outputFrame, lock
+
+        # loop over frames from the output stream
+        while True:
+            # wait until the lock is acquired
+            with lock:
+                # check if the output frame is available, otherwise skip
+                # the iteration of the loop
+                if outputFrame is None:
+                    continue
+
+                # encode the frame in JPEG format
+                (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+
+                # ensure the frame was successfully encoded
+                if not flag:
+                    continue
+
+            # yield the output frame in the byte format
+            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
+                   bytearray(encodedImage) + b'\r\n')
+
+            time.sleep(0.25)
