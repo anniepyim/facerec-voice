@@ -1,8 +1,8 @@
 # import the necessary packages
 from imutils.video import VideoStream
 from imutils.video import FPS
+from pathlib import Path
 import numpy as np
-import argparse
 import imutils
 import pickle
 import time
@@ -12,6 +12,8 @@ import face_recognition
 from collections import Counter
 
 from datetime import datetime
+
+from . import ga_handler
 
 import logging
 logger = logging.getLogger(__name__)
@@ -192,3 +194,80 @@ class RecognizerCam():
         #vs.stop()
 
         return people_names
+
+    def build_face_dataset(self, person):
+
+        # initialize the video stream, allow the camera sensor to warm up,
+        # and initialize the total number of example faces written to disk
+        # thus far
+
+        outputPath = os.path.join(os.path.dirname(__file__),
+                                  "../dataset/face_detection", person)
+        Path(outputPath).mkdir(parents=True, exist_ok=True)
+        # logger.info("starting video stream...")
+        # vs = VideoStream(src=0).start()
+        # vs = VideoStream(usePiCamera=True).start()
+        # time.sleep(1.0)
+        total = 0
+        res = ga_handler.call(txt="Talk to Recognize Me", display="False")
+        # loop over the frames from the video stream
+        while res:
+            # grab the frame from the threaded video stream, clone it, (just
+            # in case we want to write it to disk), and then resize the frame
+            # so we can apply face detection faster
+
+            if total == 0:
+                txt = "Take the first picture"
+                res_dict = ga_handler.call(txt=txt, display="False")
+                logger.info(res_dict)
+            elif total == 4:
+                txt = "Take the last picture"
+                res_dict = ga_handler.call(txt=txt, display="False")
+                logger.info(res_dict)
+            else:
+                txt = "Take more pictures"
+                res_dict = ga_handler.call(txt=txt, display="False")
+                logger.info(res_dict)
+
+            frame = self.vs.read()
+            # orig = frame.copy()
+            # frame = imutils.resize(frame, width=400)
+            #
+            # # detect faces in the grayscale frame
+            # rects = detector.detectMultiScale(
+            # 	cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), scaleFactor=1.1,
+            # 	minNeighbors=5, minSize=(30, 30))
+            #
+            # # loop over the face detections and draw them on the frame
+            # for (x, y, w, h) in rects:
+            # 	cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            #
+            # # show the output frame
+            # cv2.imshow("Frame", frame)
+            # key = cv2.waitKey(1) & 0xFF
+
+            # if the `k` key was pressed, write the *original* frame to disk
+            # so we can later process it and use it for face recognition
+
+            p = os.path.sep.join([outputPath, "{}.png".format(
+                str(total).zfill(5))])
+            cv2.imwrite(p, frame)
+            total += 1
+            logger.info("here")
+
+            # if the `q` key was pressed, break from the loop
+            # elif key == ord("q"):
+            if total >= 5:
+                print("Done!")
+                break
+
+        # do a bit of cleanup
+        logger.info("{} face images stored".format(total))
+        logger.info("cleaning up...")
+        cv2.destroyAllWindows()
+        # vs.stop()
+
+    def reset_model(self):
+        logger.info("Reloading model")
+        self.recognizer = pickle.loads(open(recognizerPath, "rb").read())
+        self.le = pickle.loads(open(lePath, "rb").read())

@@ -1,8 +1,8 @@
-import time
+import keyboard
 import datetime
+import time
 
-from modules import ga_handler, recognize_video, infrared, porcupine_mic
-from modules.train_new_person import build_face_dataset, extract_embeddings, train_model
+from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -14,8 +14,8 @@ lastheard_limit = 10
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 
-#infrared_detector = infrared.InfraredDetector()
 recognizer = recognize_video.RecognizerCam(run_time=5)
+face_trainer = face_trainer.FaceTrainer(confidence=0.5)
 wakeword_recognizer = porcupine_mic.PorcupineDemo()
 wakeword_recognizer.daemon = True
 wakeword_recognizer.start()
@@ -37,11 +37,15 @@ def train_ga():
         if res_dict["response"]:
             new_person = res_dict["new_person"]
             logger.info("Take pictures for {}".format(new_person))
-            build_face_dataset(new_person, recognizer.vs)
+            recognizer.build_face_dataset(new_person)
             logger.info("Extract embeddings for {}".format(new_person))
-            extract_embeddings()
+            face_trainer.extract_embeddings()
             logger.info("Train model to add {}".format(new_person))
-            train_model()
+            face_trainer.train_model()
+
+            # reload model after training
+            recognizer.reset_model()
+
     elif "skip_fallback" not in res_dict:
         ga_handler.call("stop")
 
