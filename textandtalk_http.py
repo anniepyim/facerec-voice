@@ -1,3 +1,7 @@
+# USAGE
+# python textandtalk_http.py --port 8081
+
+import argparse
 import concurrent.futures
 import json
 import os
@@ -39,9 +43,6 @@ from modules import browser_helpers
 import logging
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
-
-#curl -G "http://localhost:8081" --data-urlencode "input=hello world"
-
 
 class SampleAssistant(object):
     """Sample Assistant that supports conversations and device actions.
@@ -303,7 +304,7 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
     return response_text_strs
 
 
-def run():
+def run(port):
 
     api_endpoint = 'embeddedassistant.googleapis.com'
     project_id = "assistantdevice-1f1e8"
@@ -325,7 +326,6 @@ def run():
     audio_flush_size = audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
     grpc_deadline = 60 * 3 + 5
     once = False
-    port = 8081
 
     global assistant
 
@@ -462,10 +462,11 @@ def run():
 
     # Allow using other ports when testing
     # Local Change
-    if port:
-        server_address = ('', int(port))
-    else:
-        server_address = ('', 8081)
+    # if port:
+    #     server_address = ('', int(port))
+    # else:
+    #     server_address = ('', 8081)
+    server_address = ('', int(port))
 
     httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
 
@@ -473,4 +474,10 @@ def run():
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    run()
+
+    # construct the argument parser and parse command line arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-o", "--port", type=int, default=8081,
+                    help="ephemeral port number of the server (1024 to 65535)")
+    args = vars(ap.parse_args())
+    run(port=args["port"])
