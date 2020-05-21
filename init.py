@@ -60,7 +60,7 @@ def run():
         recognizer.detect_motion()
 
         # motion detcted, detect human faces
-        persons = recognizer.run()
+        persons = recognizer.recognize()
 
         # response when detected known person
         if len(persons) > 0:
@@ -98,6 +98,8 @@ def run():
                     logger.info(response)
 
                 lasttalk_time = datetime.datetime.now()
+
+        time.sleep(0.5)
 
 
 if __name__ == '__main__':
