@@ -14,7 +14,7 @@ from datetime import datetime
 
 import threading
 lock = threading.Lock()
-output_frame = None
+outputFrame = None
 
 from . import ga_handler
 from . import singlemotiondetector
@@ -40,7 +40,7 @@ lePath = os.path.join(os.path.dirname(__file__),
 
 class RecognizerCam():
 
-    def __init__(self, confidence=0.6, run_time=5, warmup_time=0.5):
+    def __init__(self, confidence=0.6, run_time=5, warmup_time=1.0):
 
         self.confidence = confidence
         self.run_time = run_time
@@ -60,10 +60,28 @@ class RecognizerCam():
         self.le = pickle.loads(open(lePath, "rb").read())
 
         # initialize the video stream, then allow the camera sensor to warm up
+        self.warmup_time = warmup_time
+        self.status = True
         logger.info("starting video stream...")
         self.vs = VideoStream(src=0).start()
         # vs = VideoStream(usePiCamera=True).start()
-        time.sleep(warmup_time)
+        time.sleep(self.warmup_time)
+
+    def restart(self):
+        self.vs = VideoStream(src=0).start()
+        time.sleep(self.warmup_time)
+        self.status = True
+
+        return self.status
+
+    def stop(self):
+        self.vs.stop()
+        time.sleep(2.0)
+        self.vs.stream.release()
+        time.sleep(2.0)
+        self.status = False
+
+        return self.status
 
     def detect_motion(self, frameCount=10):
         # grab global references to the video stream, output frame, and
@@ -76,7 +94,7 @@ class RecognizerCam():
         total = 0
 
         # loop over frames from the video stream
-        while True:
+        while True and self.status:
             motion = None
 
             # read the next frame from the video stream, resize it,
@@ -125,7 +143,7 @@ class RecognizerCam():
             if motion is not None:
                 break
 
-    def run(self):
+    def recognize(self):
         # grab global references to the video stream, output frame, and
         # lock variables
         global outputFrame, lock
@@ -140,7 +158,7 @@ class RecognizerCam():
         record_name = False
         run_cam = True
 
-        while run_cam:
+        while run_cam and self.status:
             # grab the frame from the threaded video stream
             frame = self.vs.read()
 
@@ -213,7 +231,8 @@ class RecognizerCam():
                             (0, 0, 255), 2)
                         cv2.putText(frame, text, (startX, y),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-
+            cv2.putText(frame, "Recognizing...", (10, frame.shape[0] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
             now_time = datetime.now()
             delta = now_time - start_time
@@ -356,7 +375,7 @@ class RecognizerCam():
         global outputFrame, lock
 
         # loop over frames from the output stream
-        while True:
+        while True and self.status:
             # wait until the lock is acquired
             with lock:
                 # check if the output frame is available, otherwise skip
