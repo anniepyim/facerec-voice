@@ -338,11 +338,11 @@ class RecognizerCam():
             #
             # # show the output frame
             # cv2.imshow("Frame", frame)
-            # key = cv2.waitKey(1) & 0xFF
 
             # if the `k` key was pressed, write the *original* frame to disk
             # so we can later process it and use it for face recognition
 
+            # key = cv2.waitKey(1) & 0xFF
             p = os.path.sep.join([outputPath, "{}.png".format(
                 str(total).zfill(5))])
             cv2.imwrite(p, frame)
