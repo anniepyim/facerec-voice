@@ -7,3 +7,4 @@ face_recognition
 sklearn
 requests
 keyboard
+concurrent

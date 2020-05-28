@@ -12,3 +12,7 @@ python -m pip install --upgrade google-assistant-sdk[samples]
 python -m pip install --upgrade google-auth-oauthlib[tool]
 
 #download and install ngrok
+
+
+# magic mirror
+brew install node

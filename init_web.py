@@ -1,6 +1,6 @@
 # USAGE
 # python textandtalk_http.py --port 8081
-# python init_webstreaming.py --ip 0.0.0.0 --port 8002
+# python init_webstreaming.py --ip 0.0.0.0 --port 8082
 # ngrok http -auth="username:password" 8082
 
 # import the necessary packages
@@ -11,6 +11,8 @@ import argparse
 #import keyboard
 import datetime
 import time
+import requests
+import urllib
 
 from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
 
@@ -103,6 +105,14 @@ def train_ga():
     elif "skip_fallback" not in res_dict:
         ga_handler.call("stop")
 
+def call_mirror_greet(persons):
+
+    payload = {'type': 'INFO', 'message': persons, 'silent': 'true'}
+    params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
+    r = requests.get('http://localhost:8080/greetings?', params=params)
+
+    logger.info(r.text)
+
 def run():
 
     lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
@@ -148,10 +158,17 @@ def run():
 
                 # else greet the person if beyond the last seen time
                 elif from_lasttalk.seconds >= lasttalk_limit:
-                    logger.info("See {} for the first time".format(",".join(persons)))
-                    response = ga_handler.greet(persons)
-                    if response:
-                        logger.info(response)
+
+                    if len(persons) > 1:
+                        persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
+                    else:
+                        persons_str = persons[0]
+
+                    logger.info("See {} for the first time".format(persons_str))
+                    call_mirror_greet(persons_str)
+                    # response = ga_handler.greet(persons)
+                    # if response:
+                    #     logger.info(response)
 
                     lasttalk_time = datetime.datetime.now()
 

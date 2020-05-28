@@ -66,11 +66,13 @@ class RecognizerCam():
         self.vs = VideoStream(src=0).start()
         # vs = VideoStream(usePiCamera=True).start()
         time.sleep(self.warmup_time)
+        logger.info("Video streaming starts")
 
     def restart(self):
         self.vs = VideoStream(src=0).start()
         time.sleep(self.warmup_time)
         self.status = True
+        logger.info("Video streaming starts")
 
         return self.status
 
@@ -80,6 +82,7 @@ class RecognizerCam():
         self.vs.stream.release()
         time.sleep(2.0)
         self.status = False
+        logger.info("Video streaming stops")
 
         return self.status
 

@@ -23,7 +23,7 @@ while txt != 'quit':
     # if lang == '':
     #     lang = 'en_US'
 
-    payload = {'input': txt, 'lang': 'en_US', 'display': "True"}
+    payload = {'input': txt, 'lang': 'en_US', 'display': "False"}
     #headers = {'Content-Type': 'application/json;charset=UTF-8'}
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     r = requests.get('http://localhost:8081', params=params)
