@@ -11,10 +11,9 @@ import argparse
 #import keyboard
 import datetime
 import time
-import requests
-import urllib
 
 from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
+from modules.mirror_handler import mirror_greet, mirror_spotify, mirror_spotify_status, mirror_youtube
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +31,9 @@ wakeword_recognizer = porcupine_mic.PorcupineDemo()
 wakeword_recognizer.daemon = True
 wakeword_recognizer.start()
 video_run = recognizer.status
+spotify_status = None
+
+video_run = False
 
 ALLOWED_IPS = ['127.0.0.1']
 
@@ -50,21 +52,46 @@ def index():
     # return the rendered template
 
     video_run = recognizer.status
+    yt_response = ""
+    raw_url = ""
 
     if request.method == 'POST':
-        video_resp = request.form['toggle_button']
 
-        if video_resp == "Start":
-            video_run = recognizer.restart()
-        else:
-            video_run = recognizer.stop()
+        logger.info(request.form)
+        if "toggle_button" in request.form:
+
+            video_resp = request.form['toggle_button']
+
+            if video_resp == "Start":
+                video_run = True
+                video_run = recognizer.restart()
+            else:
+                video_run = False
+                video_run = recognizer.stop()
+
+        if "yt_url" in request.form and "submit_yt" in request.form:
+            try:
+                raw_url = request.form['yt_url']
+                url = "https://www.youtube.com/embed/"+raw_url.split("youtu.be/")[1]+"?autoplay=1"
+                play_youtube(url)
+            except:
+                yt_response = "Error in loading the URL!"
+
+        if "stop_yt" in request.form:
+            stop_youtube()
+            logger.info("Youtube stopped")
+            try:
+                raw_url = request.form['yt_url']
+            except:
+                logger.info("no url")
+
 
     if video_run:
         video_button = "Stop"
     else:
         video_button = "Start"
 
-    return render_template("index.html", button=video_button)
+    return render_template("index.html", button=video_button, yt_response=yt_response, raw_url=raw_url)
 
 
 @app.route("/video_feed")
@@ -76,15 +103,29 @@ def video_feed():
 
 
 def wake_ga(lang="en-US"):
+    global spotify_status
 
     logger.info("Wakeword detected within timeframe")
+
+    spotify_status = mirror_spotify_status()
+    mirror_spotify("Pause Spotify")
+    stop_youtube(True)
+
     response = ga_handler.call("ok google", lang)
     logger.info(response)
+    if spotify_status:
+        mirror_spotify("Play Spotify")
 
 
 def train_ga():
+    global spotify_status
 
     logger.info("Ask RecognizeMe to train for new person")
+
+    spotify_status = mirror_spotify_status()
+    mirror_spotify("Pause Spotify")
+    stop_youtube(True)
+
     res_dict = ga_handler.recognize_me("meet a new friend")
 
     logger.info(res_dict)
@@ -105,13 +146,28 @@ def train_ga():
     elif "skip_fallback" not in res_dict:
         ga_handler.call("stop")
 
-def call_mirror_greet(persons):
+    if spotify_status:
+        mirror_spotify("Play Spotify")
 
-    payload = {'type': 'INFO', 'message': persons, 'silent': 'true'}
-    params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
-    r = requests.get('http://localhost:8080/greetings?', params=params)
 
-    logger.info(r.text)
+def play_youtube(url):
+    global spotify_status
+
+    logger.info("Play youtube on MM")
+
+    spotify_status = mirror_spotify_status()
+    mirror_spotify("Pause Spotify")
+
+    mirror_youtube("true", url)
+
+
+def stop_youtube(all=False):
+    global spotify_status
+
+    mirror_youtube("false")
+    if spotify_status and not all:
+        mirror_spotify("Play Spotify")
+
 
 def run():
 
@@ -165,7 +221,7 @@ def run():
                         persons_str = persons[0]
 
                     logger.info("See {} for the first time".format(persons_str))
-                    call_mirror_greet(persons_str)
+                    mirror_greet(persons_str)
                     # response = ga_handler.greet(persons)
                     # if response:
                     #     logger.info(response)
@@ -191,6 +247,7 @@ if __name__ == '__main__':
     t = threading.Thread(target=run)
     t.daemon = True
     t.start()
+    stop_youtube()
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,

@@ -37,10 +37,9 @@ except (SystemError, ImportError):
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import unquote
-import urllib
-import requests
 
 from modules import browser_helpers
+from modules.mirror_handler import mirror_call, mirror_spotify
 
 import logging
 logger = logging.getLogger()
@@ -143,7 +142,11 @@ class SampleAssistant(object):
                 if resp.event_type == self.END_OF_UTTERANCE:
                     logger.info('End of audio request detected.')
                     logger.info('Stopping recording.')
-                    call_mirror("user_reply", user_response)
+                    mirror_call("user_reply", user_response)
+
+                    if mirror_spotify(user_response):
+                        return False, "None"
+
                     self.conversation_stream.stop_recording()
                 if resp.speech_results:
                     user_response = ' '.join(r.transcript for r in resp.speech_results)
@@ -269,13 +272,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         return
 
-def call_mirror(notification, reply):
-    payload = {'notification': notification, 'reply': reply}
-    params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
-    r = requests.get('http://localhost:8080/ga?', params=params)
-
-    logger.info(r.text)
-
 def recognizeme_audio(s):
 
     audio = True
@@ -307,7 +303,7 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
     while continue_audio:
 
         if continue_conversation:
-            call_mirror("conv_on", "")
+            mirror_call("conv_on", "")
             # os.system("aplay resources/soundwav/start.wav")
 
         continue_conversation, response_text = assistant.assist()
@@ -316,7 +312,7 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
         if response_text:
             response_text_strs.append(response_text)
 
-    call_mirror("conv_off", "")
+    mirror_call("conv_off", "")
     # os.system("aplay resources/soundwav/stop.wav")
 
     return response_text_strs
@@ -443,7 +439,7 @@ def run(port):
                 sys.exit(-1)
             logger.info('Device registered: %s', device_id)
             pathlib.Path(os.path.dirname(device_config)).mkdir(exist_ok=True)
-            with open(device_config, 'w') as f:
+            with open(device_config, 'w') as f:f
                 json.dump(payload, f)
 
     device_handler = device_helpers.DeviceRequestHandler(device_id)
