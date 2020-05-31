@@ -16,3 +16,4 @@ python -m pip install --upgrade google-auth-oauthlib[tool]
 
 # magic mirror
 brew install node
+python -m spacy download en
