@@ -1,0 +1,29 @@
+
+sudo apt update
+sudo apt install build-essential
+sudo apt-get install python3-dev python3-venv python3-opnecv
+sudo apt-get install -y libasound-dev libffi-dev libatlas-base-dev libjasper-dev libqtgui4 libqt4-test cmake
+
+python3 -m venv venv
+source venv/bin/activate
+
+cp /usr/lib/pymodules/python2.7/cv* $VIRTUAL_ENV/lib/python2.7/site-packages/
+
+(download from portaudio - www.portaudio.com/download)
+
+tar xvfz (the .tgz file)
+cd portaudio
+./configure
+make
+make install
+ldconfig
+
+# activate camera through raspi-config
+pip3 install imutils
+pip3 install picamera
+pip3 install pyaudio
+pip3 install pvporcupine
+pip3 install opencv-python==3.4.6.27
+
+# follow google assistant service installation
+# copy config

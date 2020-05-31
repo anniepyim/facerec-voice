@@ -1,4 +1,3 @@
-pandas
 numpy
 pyaudio
 pvporcupine
@@ -7,6 +6,6 @@ opencv-python
 face_recognition
 sklearn
 requests
-pvporcupine
 keyboard
-pyttsx3
+concurrent
+spacy

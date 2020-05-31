@@ -39,6 +39,7 @@ from urllib.parse import urlparse
 from urllib.parse import unquote
 
 from modules import browser_helpers
+from modules.mirror_handler import mirror_call, mirror_spotify
 
 import logging
 logger = logging.getLogger()
@@ -116,6 +117,7 @@ class SampleAssistant(object):
         continue_conversation = False
         give_audio = True
         device_actions_futures = []
+        user_response = None
         self.language_code = language_code
         if display:
             self.display = display == "True"
@@ -140,11 +142,15 @@ class SampleAssistant(object):
                 if resp.event_type == self.END_OF_UTTERANCE:
                     logger.info('End of audio request detected.')
                     logger.info('Stopping recording.')
+                    mirror_call("user_reply", user_response)
+
+                    if mirror_spotify(user_response):
+                        return False, "None"
+
                     self.conversation_stream.stop_recording()
                 if resp.speech_results:
-                    logger.info('Transcript of user request: "%s".',
-                                 ' '.join(r.transcript
-                                          for r in resp.speech_results))
+                    user_response = ' '.join(r.transcript for r in resp.speech_results)
+                    logger.info('Transcript of user request: "%s".', user_response)
             if resp.dialog_state_out.supplemental_display_text:
                 text_response = resp.dialog_state_out.supplemental_display_text
 
@@ -285,6 +291,7 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
     response_text_strs = []
 
     continue_conversation, response_text = assistant.assist(text_query=input_text, language_code=lang, display=display)
+
     response_text_strs.append(response_text)
 
     if recognizeme_audio(response_text) and continue_conversation:
@@ -295,14 +302,20 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
 
     while continue_audio:
 
+        if continue_conversation:
+            mirror_call("conv_on", "")
+            # os.system("aplay resources/soundwav/start.wav")
+
         continue_conversation, response_text = assistant.assist()
         continue_audio = continue_conversation
 
         if response_text:
             response_text_strs.append(response_text)
 
-    return response_text_strs
+    mirror_call("conv_off", "")
+    # os.system("aplay resources/soundwav/stop.wav")
 
+    return response_text_strs
 
 def run(port):
 
@@ -315,7 +328,7 @@ def run(port):
     device_config = os.path.join(click.get_app_dir('googlesamples-assistant'),
                                  'device_config.json')
     lang = "en-US"
-    display = True
+    display = False
     verbose = False
     input_audio_file = None
     output_audio_file = None
@@ -426,7 +439,7 @@ def run(port):
                 sys.exit(-1)
             logger.info('Device registered: %s', device_id)
             pathlib.Path(os.path.dirname(device_config)).mkdir(exist_ok=True)
-            with open(device_config, 'w') as f:
+            with open(device_config, 'w') as f:f
                 json.dump(payload, f)
 
     device_handler = device_helpers.DeviceRequestHandler(device_id)
