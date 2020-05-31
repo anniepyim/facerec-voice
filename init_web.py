@@ -25,7 +25,7 @@ lastheard_limit = 10
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 
-recognizer = recognize_video.RecognizerCam(run_time=5)
+recognizer = recognize_video.RecognizerCam(run_time=3)
 face_trainer = face_trainer.FaceTrainer(confidence=0.5)
 wakeword_recognizer = porcupine_mic.PorcupineDemo()
 wakeword_recognizer.daemon = True

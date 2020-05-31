@@ -49,14 +49,13 @@ def mirror_spotify(user_response):
     type = "playlist"
 
     if ("spotify" in s or "Spotify" in s):
-        if ("play" in s) or ("search" in s):
-            if len(query) > 0:
-                payload = {'notification': 'SEARCH_AND_PLAY', 'q': query, 'type': type, 'random': True,
-                           'autoplay': True}
-            else:
-                payload = {'notification': 'PLAY'}
         if ("stop" in s) or ("pause" in s):
             payload = {'notification': 'PAUSE'}
+        elif len(query) > 0:
+            payload = {'notification': 'SEARCH_AND_PLAY', 'q': query, 'type': type, 'random': True,
+                       'autoplay': True}
+        else:
+            payload = {'notification': 'PLAY'}
         params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
         r = requests.get('http://localhost:'+port+'/spotify?', params=params)
         logger.info(r.text)

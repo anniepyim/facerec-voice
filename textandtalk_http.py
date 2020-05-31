@@ -439,7 +439,7 @@ def run(port):
                 sys.exit(-1)
             logger.info('Device registered: %s', device_id)
             pathlib.Path(os.path.dirname(device_config)).mkdir(exist_ok=True)
-            with open(device_config, 'w') as f:f
+            with open(device_config, 'w') as f:
                 json.dump(payload, f)
 
     device_handler = device_helpers.DeviceRequestHandler(device_id)
