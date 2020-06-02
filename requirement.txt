@@ -8,4 +8,6 @@ sklearn
 requests
 keyboard
 concurrent
+wheel
 spacy
+flask
