@@ -313,7 +313,7 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
             response_text_strs.append(response_text)
 
     mirror_call("conv_off", "")
-    # os.system("aplay resources/soundwav/stop.wav")
+    # os.system("aplay resources/soundwav/start.wav")
 
     return response_text_strs
 

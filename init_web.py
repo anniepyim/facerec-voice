@@ -34,6 +34,7 @@ video_run = recognizer.status
 spotify_status = None
 
 video_run = False
+persons = []
 
 ALLOWED_IPS = ['127.0.0.1']
 
@@ -171,11 +172,8 @@ def stop_youtube(all=False):
 
 def run():
 
-    lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
-    lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
-
     while True:
-        global video_run
+        global video_run, persons
 
         if video_run:
             # the function stops looping and continue if movement is detected
@@ -184,49 +182,59 @@ def run():
             # motion detcted, detect human faces
             persons = recognizer.recognize()
 
-            # response when detected known person
-            if len(persons) > 0:
-                lastseen_time = datetime.datetime.now()
+        time.sleep(0.5)
 
-            # the time from when the system last saw a known person
-            from_lastseen = datetime.datetime.now() - lastseen_time
+def trigger():
 
-            # the time from when the system last heard wakeword
-            wakeword_lastheard = wakeword_recognizer.detected_time
-            from_lastheard = datetime.datetime.now() - wakeword_lastheard
-            from_lasttalk = datetime.datetime.now() - lasttalk_time
+    lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
+    lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 
-            # give appropriate response if know person is detected
-            if from_lastseen.seconds < lastseen_limit:
+    while True:
+        global persons
 
-                # interact with user if wakeword is heard
-                if from_lastheard.seconds < lastheard_limit:
-                    if wakeword_recognizer.detected_keyword == "porcupine":
-                        wake_ga()
-                    if wakeword_recognizer.detected_keyword == "grasshopper":
-                        wake_ga("de-DE")
-                    if wakeword_recognizer.detected_keyword == "bumblebee":
-                        train_ga()
+        # response when detected known person
+        if len(persons) > 0:
+            lastseen_time = datetime.datetime.now()
 
-                    lasttalk_time = datetime.datetime.now()
-                    # reset detected time so it won't be called again
-                    wakeword_recognizer.reset_detected()
+        # the time from when the system last saw a known person
+        from_lastseen = datetime.datetime.now() - lastseen_time
 
-                # else greet the person if beyond the last seen time
-                elif from_lasttalk.seconds >= lasttalk_limit:
+        # the time from when the system last heard wakeword
+        wakeword_lastheard = wakeword_recognizer.detected_time
+        from_lastheard = datetime.datetime.now() - wakeword_lastheard
+        from_lasttalk = datetime.datetime.now() - lasttalk_time
 
-                    if len(persons) > 1:
-                        persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
-                    else:
-                        persons_str = persons[0]
+        # give appropriate response if know person is detected
+        if from_lastseen.seconds < lastseen_limit:
 
-                    logger.info("See {} for the first time".format(persons_str))
-                    mirror_greet(persons_str)
-                    # response = ga_handler.greet(persons)
-                    # if response:
-                    #     logger.info(response)
+            # interact with user if wakeword is heard
+            if from_lastheard.seconds < lastheard_limit:
+                if wakeword_recognizer.detected_keyword == "porcupine":
+                    wake_ga()
+                if wakeword_recognizer.detected_keyword == "grasshopper":
+                    wake_ga("de-DE")
+                if wakeword_recognizer.detected_keyword == "bumblebee":
+                    train_ga()
 
-                    lasttalk_time = datetime.datetime.now()
+                lasttalk_time = datetime.datetime.now()
+                # reset detected time so it won't be called again
+                wakeword_recognizer.reset_detected()
+
+            # else greet the person if beyond the last seen time
+            elif from_lasttalk.seconds >= lasttalk_limit:
+
+                if len(persons) > 1:
+                    persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
+                else:
+                    persons_str = persons[0]
+
+                logger.info("See {} for the first time".format(persons_str))
+                mirror_greet(persons_str)
+                # response = ga_handler.greet(persons)
+                # if response:
+                #     logger.info(response)
+
+                lasttalk_time = datetime.datetime.now()
 
         time.sleep(0.5)
 
@@ -247,6 +255,12 @@ if __name__ == '__main__':
     t = threading.Thread(target=run)
     t.daemon = True
     t.start()
+
+    # start a thread that will perform motion detection
+    t2 = threading.Thread(target=trigger)
+    t2.daemon = True
+    t2.start()
+
     stop_youtube()
 
     # start the flask app
