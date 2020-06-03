@@ -26,6 +26,7 @@ lastheard_limit = 10
 keepon = 60
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
+lastmotion_time = datetime.datetime.now()
 
 recognizer = recognize_video.RecognizerCam(run_time=3)
 face_trainer = face_trainer.FaceTrainer(confidence=0.5)
@@ -185,10 +186,8 @@ def stop_youtube(all=False):
 
 def run():
 
-    lastmotion_time = datetime.datetime.now() - datetime.timedelta(seconds=keepon)
-
     while True:
-        global video_run, persons
+        global video_run, persons, lastmotion_time
 
         if video_run:
             # the function stops looping and continue if movement is detected
@@ -196,17 +195,15 @@ def run():
 
             lastmotion_time = datetime.datetime.now()
 
-            r = subprocess.run(['tvservice', '--status'])
-            if '[TV is off]' in r.stdout.decode('utf-8'):
-                os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+            try:
+                r = subprocess.run(['tvservice', '--status'])
+                if '[TV is off]' in r.stdout.decode('utf-8'):
+                    os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+            except:
+                logger.info("No commands to turn on")
 
             # motion detcted, detect human faces
             persons = recognizer.recognize()
-
-        from_lastmotion = datetime.datetime.now() - lastmotion_time
-
-        if from_lastmotion.seconds >= keepon:
-            os.system("tvservice -o")
 
         time.sleep(0.5)
 
@@ -216,7 +213,7 @@ def trigger():
     lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 
     while True:
-        global persons
+        global persons, lastmotion_time
 
         # response when detected known person
         if len(persons) > 0:
@@ -262,6 +259,15 @@ def trigger():
 
                 lasttalk_time = datetime.datetime.now()
 
+        from_lastmotion = datetime.datetime.now() - lastmotion_time
+
+        try:
+            if from_lastmotion.seconds >= keepon:
+                os.system("tvservice -o")
+        except:
+            logger.info("No commands to turn off")
+
+        persons = []
         time.sleep(0.5)
 
 
