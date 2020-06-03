@@ -131,6 +131,7 @@ class SampleAssistant(object):
         if text_query is None:
             self.conversation_stream.start_recording()
             logger.info('Recording audio request.')
+            # os.system("aplay resources/soundwav/start.wav")
 
         # This generator yields AssistResponse proto messages
         # received from the gRPC Google Assistant API.
@@ -144,7 +145,7 @@ class SampleAssistant(object):
                     logger.info('Stopping recording.')
                     mirror_call("user_reply", user_response)
 
-                    if mirror_spotify(user_response):
+                    if mirror_spotify(user_response, True):
                         return False, "None"
 
                     self.conversation_stream.stop_recording()
@@ -304,7 +305,6 @@ def continue_audio_handler(input_text, lang="en_US", display=None):
 
         if continue_conversation:
             mirror_call("conv_on", "")
-            # os.system("aplay resources/soundwav/start.wav")
 
         continue_conversation, response_text = assistant.assist()
         continue_audio = continue_conversation

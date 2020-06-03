@@ -11,6 +11,7 @@ import argparse
 #import keyboard
 import datetime
 import time
+import subprocess
 
 from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
 from modules.mirror_handler import mirror_greet, mirror_spotify, mirror_spotify_status, mirror_youtube
@@ -22,6 +23,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(na
 lastseen_limit = 10
 lasttalk_limit = 60
 lastheard_limit = 10
+keepon = 60
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 
@@ -95,6 +97,16 @@ def index():
     return render_template("index.html", button=video_button, yt_response=yt_response, raw_url=raw_url)
 
 
+@app.route("/spotify")
+def spotify():
+    global spotify_changed
+
+    spotify_changed = request.args.get('spotify_changed') == "True"
+    logger.info("jere")
+    logger.info(spotify_changed)
+
+    return "Done"
+
 @app.route("/video_feed")
 def video_feed():
     # return the response generated along with the specific media
@@ -104,7 +116,7 @@ def video_feed():
 
 
 def wake_ga(lang="en-US"):
-    global spotify_status
+    global spotify_status,spotify_changed
 
     logger.info("Wakeword detected within timeframe")
 
@@ -114,7 +126,8 @@ def wake_ga(lang="en-US"):
 
     response = ga_handler.call("ok google", lang)
     logger.info(response)
-    if spotify_status:
+
+    if spotify_status and not spotify_changed:
         mirror_spotify("Play Spotify")
 
 
@@ -172,6 +185,8 @@ def stop_youtube(all=False):
 
 def run():
 
+    lastmotion_time = datetime.datetime.now() - datetime.timedelta(seconds=keepon)
+
     while True:
         global video_run, persons
 
@@ -179,8 +194,19 @@ def run():
             # the function stops looping and continue if movement is detected
             recognizer.detect_motion()
 
+            lastmotion_time = datetime.datetime.now()
+
+            r = subprocess.run(['tvservice', '--status'])
+            if '[TV is off]' in r.stdout.decode('utf-8'):
+                os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+
             # motion detcted, detect human faces
             persons = recognizer.recognize()
+
+        from_lastmotion = datetime.datetime.now() - lastmotion_time
+
+        if from_lastmotion.seconds >= keepon:
+            os.system("tvservice -o")
 
         time.sleep(0.5)
 
