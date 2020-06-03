@@ -63,8 +63,8 @@ class RecognizerCam():
         self.warmup_time = warmup_time
         self.status = True
         logger.info("starting video stream...")
-        self.vs = VideoStream(src=0).start()
-        # vs = VideoStream(usePiCamera=True).start()
+        # self.vs = VideoStream(src=0).start()
+        self.vs = VideoStream(usePiCamera=True).start()
         time.sleep(self.warmup_time)
         logger.info("Video streaming starts")
 
@@ -133,7 +133,7 @@ class RecognizerCam():
             md.update(gray)
             total += 1
 
-            time.sleep(0.25)
+            time.sleep(0.1)
             # show the output frame
             # cv2.imshow("Frame", frame)
             # key = cv2.waitKey(1) & 0xFF
@@ -249,7 +249,7 @@ class RecognizerCam():
 
             # update the FPS counter
             fps.update()
-            time.sleep(0.25)
+            time.sleep(0.1)
             # show the output frame
             # cv2.imshow("Frame", frame)
             # key = cv2.waitKey(1) & 0xFF
@@ -266,7 +266,7 @@ class RecognizerCam():
         people_names = []
 
         people_dict = Counter(people)
-        threshold = len(people)/len(people_dict)*0.8
+        threshold = len(people)/len(people_dict)*0.5
         for k in people_dict.keys():
             if people_dict[k] >= threshold:
                 people_names.append(k)
