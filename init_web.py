@@ -115,9 +115,9 @@ def screen():
     screen_on = request.args.get('screen') == "on"
 
     if screen_on:
-        os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+        os.system("vcgencmd display_power 1")
     else:
-        os.system("tvservice -o")
+        os.system("vcgencmd display_power 0")
 
     return "Done"
 
@@ -209,9 +209,9 @@ def run():
             lastmotion_time = datetime.datetime.now()
 
             try:
-                r = subprocess.run(['tvservice', '--status'], stdout=subprocess.PIPE)
-                if '[TV is off]' in r.stdout.decode('utf-8'):
-                    os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+                r = subprocess.run(['vcgencmd', 'display_power'], stdout=subprocess.PIPE)
+                if 'display_power=0' in r.stdout.decode('utf-8'):
+                    os.system("vcgencmd display_power 1")
             except:
                 logger.info("No commands to turn on")
 
@@ -276,7 +276,7 @@ def trigger():
 
         try:
             if from_lastmotion.seconds >= keepon:
-                os.system("tvservice -o")
+                os.system("vcgencmd display_power 0")
         except:
             logger.info("No commands to turn off")
 
