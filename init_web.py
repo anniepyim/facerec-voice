@@ -12,6 +12,7 @@ import argparse
 import datetime
 import time
 import subprocess
+import os
 
 from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
 from modules.mirror_handler import mirror_greet, mirror_spotify, mirror_spotify_status, mirror_youtube
@@ -108,6 +109,18 @@ def spotify():
 
     return "Done"
 
+@app.route("/screen")
+def screen():
+
+    screen_on = request.args.get('screen') == "on"
+
+    if screen_on:
+        os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
+    else:
+        os.system("tvservice -o")
+
+    return "Done"
+
 @app.route("/video_feed")
 def video_feed():
     # return the response generated along with the specific media
@@ -196,7 +209,7 @@ def run():
             lastmotion_time = datetime.datetime.now()
 
             try:
-                r = subprocess.run(['tvservice', '--status'])
+                r = subprocess.run(['tvservice', '--status'], stdout=subprocess.PIPE)
                 if '[TV is off]' in r.stdout.decode('utf-8'):
                     os.system("tvservice --preferred && sudo chvt 6 && sudo chvt 7")
             except:
