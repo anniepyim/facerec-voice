@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s %(message)s')
 
 port = '8123'
+port_server = '8082'
 
 def keep_token(t):
     return (t.tag_ == "NN" or t.tag_ == "NNP" or t.tag_ == "NNS" or t.tag_ == "NNPS") \
@@ -37,7 +38,7 @@ def mirror_youtube(load, url=""):
 
     logger.info(r.text)
 
-def mirror_spotify(user_response):
+def mirror_spotify(user_response, send_status=False):
 
     try:
         s = user_response[0].lower() + user_response[1:]
@@ -56,6 +57,7 @@ def mirror_spotify(user_response):
                        'autoplay': True}
         else:
             payload = {'notification': 'PLAY'}
+        r = requests.get('http://localhost:' + port_server + '/spotify?spotify_changed=' + str(send_status))
         params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
         r = requests.get('http://localhost:'+port+'/spotify?', params=params)
         logger.info(r.text)
