@@ -104,8 +104,6 @@ def spotify():
     global spotify_changed
 
     spotify_changed = request.args.get('spotify_changed') == "True"
-    logger.info("jere")
-    logger.info(spotify_changed)
 
     return "Done"
 
