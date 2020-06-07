@@ -108,6 +108,7 @@ def spotify():
 
     return "Done"
 
+
 @app.route("/screen")
 def screen():
 
@@ -119,6 +120,7 @@ def screen():
         os.system("vcgencmd display_power 0")
 
     return "Done"
+
 
 @app.route("/video_feed")
 def video_feed():
@@ -144,7 +146,7 @@ def wake_ga(lang="en-US"):
         mirror_spotify("Play Spotify")
 
 
-def train_ga():
+def train_ga(persons):
     global spotify_status
 
     logger.info("Ask RecognizeMe to train for new person")
@@ -153,7 +155,7 @@ def train_ga():
     mirror_spotify("Pause Spotify")
     stop_youtube(True)
 
-    res_dict = ga_handler.recognize_me("meet a new friend")
+    res_dict = ga_handler.recognize_me("meet a new friend "+ ",".join(persons))
 
     logger.info(res_dict)
 
@@ -249,7 +251,7 @@ def trigger():
                 if wakeword_recognizer.detected_keyword == "grasshopper":
                     wake_ga("de-DE")
                 if wakeword_recognizer.detected_keyword == "bumblebee":
-                    train_ga()
+                    train_ga(persons)
 
                 lasttalk_time = datetime.datetime.now()
                 # reset detected time so it won't be called again
@@ -270,6 +272,8 @@ def trigger():
                 #     logger.info(response)
 
                 lasttalk_time = datetime.datetime.now()
+        else:
+            persons = []
 
         from_lastmotion = datetime.datetime.now() - lastmotion_time
 
@@ -279,7 +283,6 @@ def trigger():
         except:
             logger.info("No commands to turn off")
 
-        persons = []
         time.sleep(0.5)
 
 
@@ -305,7 +308,7 @@ if __name__ == '__main__':
     t2.daemon = True
     t2.start()
 
-    stop_youtube()
+    #stop_youtube()
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
