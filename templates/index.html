@@ -8,13 +8,22 @@
 
     <form action="/" method="post">
       <button name="toggle_button" type="submit" value="{{button}}">{{button}}</button><br>
-    </form>
+    </form><br>
+
     <form action="/" method="post" id="nameform">
-      <label>URL:</label>
+      <h2>Youtube Player</h2>
+      <label>Youtube URL:</label>
       <input type="text" name="yt_url" value="{{raw_url}}">
       <button name="submit_yt" type="submit" value="submit_yt">Submit</button>
       <button name="stop_yt" type="submit" value="stop_yt">Stop</button>
       <p>{{yt_response}}</p>
-    </form>
+    </form><br>
+
+    <form action="/" method="post" id="screen_onoff">
+      <h2>Screen control</h2>
+      <button name="screen_on" type="submit" value="screen_on">On</button>
+      <button name="screen_off" type="submit" value="screen_off">Off</button>
+    </form><br>
+
   </body>
 </html>

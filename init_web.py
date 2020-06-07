@@ -26,6 +26,7 @@ lastseen_limit = 10
 lasttalk_limit = 60
 lastheard_limit = 10
 keepon = 60
+keep_screen_on = False
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 lastmotion_time = datetime.datetime.now()
@@ -90,6 +91,12 @@ def index():
                 raw_url = request.form['yt_url']
             except:
                 logger.info("no url")
+
+        if "screen_on" in request.form:
+            os.system("vcgencmd display_power 1")
+
+        if "screen_off" in request.form:
+            os.system("vcgencmd display_power 0")
 
 
     if video_run:
@@ -181,9 +188,10 @@ def train_ga(persons):
 
 
 def play_youtube(url):
-    global spotify_status
+    global spotify_status, keep_screen_on
 
     logger.info("Play youtube on MM")
+    keep_screen_on = True
 
     spotify_status = mirror_spotify_status()
     mirror_spotify("Pause Spotify")
@@ -192,7 +200,9 @@ def play_youtube(url):
 
 
 def stop_youtube(all=False):
-    global spotify_status
+    global spotify_status, keep_screen_on
+
+    keep_screen_on = False
 
     mirror_youtube("false")
     if spotify_status and not all:
@@ -279,7 +289,7 @@ def trigger():
         from_lastmotion = datetime.datetime.now() - lastmotion_time
 
         try:
-            if from_lastmotion.seconds >= keepon:
+            if from_lastmotion.seconds >= keepon and not keep_screen_on:
                 os.system("vcgencmd display_power 0")
         except:
             logger.info("No commands to turn off")
