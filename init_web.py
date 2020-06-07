@@ -136,7 +136,8 @@ def wake_ga(lang="en-US"):
     logger.info("Wakeword detected within timeframe")
 
     spotify_status = mirror_spotify_status()
-    mirror_spotify("Pause Spotify")
+    if spotify_status:
+        mirror_spotify("Pause Spotify")
     stop_youtube(True)
 
     response = ga_handler.call("ok google", lang)
