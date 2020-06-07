@@ -30,8 +30,8 @@ detector = cv2.CascadeClassifier(args["cascade"])
 # and initialize the total number of example faces written to disk
 # thus far
 logger.info("starting video stream...")
-# vs = VideoStream(src=0).start()
-vs = VideoStream(usePiCamera=True).start()
+vs = VideoStream(src=0).start()
+# vs = VideoStream(usePiCamera=True).start()
 time.sleep(2.0)
 total = 0
 
@@ -56,7 +56,7 @@ while True:
 
 	# detect faces in the grayscale frame
 	rects = detector.detectMultiScale(
-		cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), scaleFactor=1.1, 
+		cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), scaleFactor=1.1,
 		minNeighbors=5, minSize=(30, 30))
 
 	# loop over the face detections and draw them on the frame
@@ -66,7 +66,7 @@ while True:
 	# show the output frame
 	cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
- 
+
 	# if the `k` key was pressed, write the *original* frame to disk
 	# so we can later process it and use it for face recognition
 

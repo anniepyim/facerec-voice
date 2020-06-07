@@ -1,4 +1,5 @@
 # USAGE
+# (cd ../MagicMirror && npm run server .)
 # python textandtalk_http.py --port 8081
 # python init_webstreaming.py --ip 0.0.0.0 --port 8082
 # ngrok http -auth="username:password" 8082
