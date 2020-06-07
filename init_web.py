@@ -196,7 +196,8 @@ def play_youtube(url):
     keep_screen_on = True
 
     spotify_status = mirror_spotify_status()
-    mirror_spotify("Pause Spotify")
+    if spotify_status:
+        mirror_spotify("Pause Spotify")
 
     mirror_youtube("true", url)
 
