@@ -131,7 +131,7 @@ class SampleAssistant(object):
         if text_query is None:
             self.conversation_stream.start_recording()
             logger.info('Recording audio request.')
-            # os.system("aplay resources/soundwav/start.wav")
+            os.system("aplay resources/soundwav/start.wav")
 
         # This generator yields AssistResponse proto messages
         # received from the gRPC Google Assistant API.
