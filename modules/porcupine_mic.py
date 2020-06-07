@@ -40,7 +40,7 @@ class PorcupineDemo(Thread):
             keywords="porcupine,bumblebee,grasshopper",
             keyword_file_paths=None,
             sensitivities=0.5,
-            input_device_index=None,
+            input_device_index=0,
             output_path=None):
 
         """

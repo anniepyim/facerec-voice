@@ -30,8 +30,8 @@ detector = cv2.CascadeClassifier(args["cascade"])
 # and initialize the total number of example faces written to disk
 # thus far
 logger.info("starting video stream...")
-vs = VideoStream(src=0).start()
-# vs = VideoStream(usePiCamera=True).start()
+# vs = VideoStream(src=0).start()
+vs = VideoStream(usePiCamera=True).start()
 time.sleep(2.0)
 total = 0
 

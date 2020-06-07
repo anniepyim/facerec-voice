@@ -64,7 +64,7 @@ class RecognizerCam():
         self.status = True
         logger.info("starting video stream...")
         self.vs = VideoStream(src=0).start()
-        # vs = VideoStream(usePiCamera=True).start()
+        #self.vs = VideoStream(usePiCamera=True).start()
         time.sleep(self.warmup_time)
         logger.info("Video streaming starts")
 
@@ -133,7 +133,7 @@ class RecognizerCam():
             md.update(gray)
             total += 1
 
-            time.sleep(0.25)
+            time.sleep(0.1)
             # show the output frame
             # cv2.imshow("Frame", frame)
             # key = cv2.waitKey(1) & 0xFF
@@ -223,8 +223,8 @@ class RecognizerCam():
                         proba = preds[j]
                         name = self.le.classes_[j]
 
-                        if record_name:
-                            people.append(name)
+                        #if record_name:
+                        people.append(name)
 
                         # draw the bounding box of the face along with the
                         # associated probability
@@ -239,17 +239,17 @@ class RecognizerCam():
 
             now_time = datetime.now()
             delta = now_time - start_time
-            delta_interval = now_time - interval_time
+            #delta_interval = now_time - interval_time
 
-            if delta_interval.microseconds > 200000:
-                record_name = True
-                interval_time = datetime.now()
-            else:
-                record_name = False
+            #if delta_interval.microseconds > 200000:
+            #    record_name = True
+            #    interval_time = datetime.now()
+            #else:
+            #    record_name = False
 
             # update the FPS counter
             fps.update()
-            time.sleep(0.25)
+            # time.sleep(0.1)
             # show the output frame
             # cv2.imshow("Frame", frame)
             # key = cv2.waitKey(1) & 0xFF
@@ -266,7 +266,7 @@ class RecognizerCam():
         people_names = []
 
         people_dict = Counter(people)
-        threshold = len(people)/len(people_dict)*0.8
+        threshold = len(people)/len(people_dict)*0.5
         for k in people_dict.keys():
             if people_dict[k] >= threshold:
                 people_names.append(k)
@@ -280,8 +280,8 @@ class RecognizerCam():
 
         # stop the timer and display FPS information
         fps.stop()
-        # logger.info("elasped time: {:.2f}".format(fps.elapsed()))
-        # logger.info("approx. FPS: {:.2f}".format(fps.fps()))
+        logger.info("elasped time: {:.2f}".format(fps.elapsed()))
+        logger.info("approx. FPS: {:.2f}".format(fps.fps()))
 
         # do a bit of cleanup
         cv2.destroyAllWindows()
