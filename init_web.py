@@ -26,7 +26,7 @@ lastseen_limit = 10
 lasttalk_limit = 60
 lastheard_limit = 10
 keepon = 60
-keep_screen_on = False
+keep_screen_on = True
 lastseen_time = datetime.datetime.now() - datetime.timedelta(seconds=lastheard_limit)
 lasttalk_time = datetime.datetime.now() - datetime.timedelta(seconds=lasttalk_limit)
 lastmotion_time = datetime.datetime.now()
@@ -55,12 +55,14 @@ def limit_remote_addr():
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
-    global video_run
+    global video_run, keep_screen_on
     # return the rendered template
 
     video_run = recognizer.status
     yt_response = ""
     raw_url = ""
+
+    keep_screen_on = False
 
     if request.method == 'POST':
 
