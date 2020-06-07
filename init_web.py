@@ -323,6 +323,7 @@ if __name__ == '__main__':
 
     stop_youtube()
     mirror_ngrok()
+    keep_screen_on = True
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
