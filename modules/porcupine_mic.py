@@ -121,6 +121,13 @@ class PorcupineDemo(Thread):
                 sensitivities=self._sensitivities)
 
             pa = pyaudio.PyAudio()
+
+            for i in range(pa.get_device_count()):
+                info = pa.get_device_info_by_index(i)
+                logger.info(info)
+                if 'USB Camera' in info['name']:
+                    self._input_device_index = int(info['index'])
+
             audio_stream = pa.open(
                 rate=porcupine.sample_rate,
                 channels=1,
