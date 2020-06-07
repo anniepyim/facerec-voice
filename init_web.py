@@ -1,8 +1,8 @@
 # USAGE
+# ngrok http -auth="username:password" 8082
 # (cd ../MagicMirror && npm run server .)
 # python textandtalk_http.py --port 8081
-# python init_webstreaming.py --ip 0.0.0.0 --port 8082
-# ngrok http -auth="username:password" 8082
+# python init_webs.py --ip 0.0.0.0 --port 8082
 
 # import the necessary packages
 from flask import Response, Flask, render_template
@@ -16,7 +16,7 @@ import subprocess
 import os
 
 from modules import ga_handler, recognize_video, porcupine_mic, face_trainer
-from modules.mirror_handler import mirror_greet, mirror_spotify, mirror_spotify_status, mirror_youtube
+from modules.mirror_handler import mirror_greet, mirror_spotify, mirror_spotify_status, mirror_youtube, mirror_ngrok
 
 import logging
 logger = logging.getLogger(__name__)
@@ -308,7 +308,8 @@ if __name__ == '__main__':
     t2.daemon = True
     t2.start()
 
-    #stop_youtube()
+    stop_youtube()
+    mirror_ngrok()
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,

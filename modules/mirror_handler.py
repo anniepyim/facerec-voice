@@ -2,6 +2,7 @@ import urllib
 import requests
 import json
 import spacy
+import time
 nlp = spacy.load("en_core_web_sm")
 
 import logging
@@ -14,6 +15,25 @@ port_server = '8082'
 def keep_token(t):
     return (t.tag_ == "NN" or t.tag_ == "NNP" or t.tag_ == "NNS" or t.tag_ == "NNPS") \
            and not (t.text == "spotify" or t.text == "Spotify" or t.text == 'music')
+
+def mirror_ngrok():
+
+    r = None
+
+    while r is None:
+        try:
+            r = requests.get("http://localhost:4040/api/tunnels")
+        except:
+            logger.info("ngrok not available. Retrying in 1 second...")
+
+        time.sleep(1)
+
+    ngrok_url = json.loads(r.text)["tunnels"][0]["public_url"]
+    payload = {'message': ngrok_url}
+    params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
+    r = requests.get('http://localhost:'+port_mirror+'/ngrok?', params=params)
+
+    logger.info(r.text)
 
 def mirror_call(notification, reply):
     payload = {'notification': notification, 'reply': reply}
