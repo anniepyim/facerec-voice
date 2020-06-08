@@ -254,6 +254,12 @@ def trigger():
         wakeword_lastheard = wakeword_recognizer.detected_time
         from_lastheard = datetime.datetime.now() - wakeword_lastheard
         from_lasttalk = datetime.datetime.now() - lasttalk_time
+        from_lastmotion = datetime.datetime.now() - lastmotion_time
+
+        # logger.info("from_lastheard {}".format(from_lastheard.seconds))
+        # logger.info("from_lasttalk {}".format(from_lasttalk.seconds))
+        # logger.info("from_lastmotion {}".format(from_lastmotion.seconds))
+        # logger.info("from_lastseen {}".format(from_lastseen.seconds))
 
         # give appropriate response if know person is detected
         if from_lastseen.seconds < lastseen_limit:
@@ -274,26 +280,31 @@ def trigger():
             # else greet the person if beyond the last seen time
             elif from_lasttalk.seconds >= lasttalk_limit:
 
-                if len(persons) > 1:
-                    persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
-                else:
-                    persons_str = persons[0]
+                try:
+                    if len(persons) > 1:
+                            persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
+                    else:
+                        persons_str = persons[0]
 
-                logger.info("See {} for the first time".format(persons_str))
-                mirror_greet(persons_str)
-                # response = ga_handler.greet(persons)
-                # if response:
-                #     logger.info(response)
+                    logger.info("See {} for the first time".format(persons_str))
+                    mirror_greet(persons_str)
+                    # response = ga_handler.greet(persons)
+                    # if response:
+                    #     logger.info(response)
 
-                lasttalk_time = datetime.datetime.now()
-        else:
-            persons = []
+                    lasttalk_time = datetime.datetime.now()
 
-        from_lastmotion = datetime.datetime.now() - lastmotion_time
+                except:
+                    logger.info("No person found")
+
+            else:
+                persons = []
 
         try:
             if from_lastmotion.seconds >= keepon and not keep_screen_on:
-                os.system("vcgencmd display_power 0")
+                r = subprocess.run(['vcgencmd', 'display_power'], stdout=subprocess.PIPE)
+                if 'display_power=1' in r.stdout.decode('utf-8'):
+                    os.system("vcgencmd display_power 0")
         except:
             logger.info("No commands to turn off")
 
