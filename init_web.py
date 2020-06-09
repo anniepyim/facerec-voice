@@ -170,7 +170,7 @@ def train_ga(persons):
     logger.info(res_dict)
 
     if "new_person" in res_dict and "response" in res_dict:
-        if res_dict["response"]:
+        if res_dict["response"] == "True":
             new_person = res_dict["new_person"]
             logger.info("Take pictures for {}".format(new_person))
             recognizer.build_face_dataset(new_person)

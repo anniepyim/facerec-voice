@@ -29,6 +29,8 @@ def greet(persons, lang="en-US"):
 
 def recognize_me(txt):
 
+    logger.info(txt)
+
     call(txt="Talk to Recognize Me", display="False")
     response = call(txt=txt, display="False")
 

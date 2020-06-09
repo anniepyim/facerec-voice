@@ -249,7 +249,7 @@ class RecognizerCam():
 
             # update the FPS counter
             fps.update()
-            # time.sleep(0.1)
+            time.sleep(0.25)
             # show the output frame
             # cv2.imshow("Frame", frame)
             # key = cv2.waitKey(1) & 0xFF
