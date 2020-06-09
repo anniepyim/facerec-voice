@@ -246,6 +246,7 @@ def trigger():
         # response when detected known person
         if len(persons) > 0:
             lastseen_time = datetime.datetime.now()
+            last_seen_person = persons
 
         # the time from when the system last saw a known person
         from_lastseen = datetime.datetime.now() - lastseen_time
@@ -271,7 +272,7 @@ def trigger():
                 if wakeword_recognizer.detected_keyword == "grasshopper":
                     wake_ga("de-DE")
                 if wakeword_recognizer.detected_keyword == "bumblebee":
-                    train_ga(persons)
+                    train_ga(last_seen_person)
 
                 lasttalk_time = datetime.datetime.now()
                 # reset detected time so it won't be called again
@@ -281,10 +282,10 @@ def trigger():
             elif from_lasttalk.seconds >= lasttalk_limit:
 
                 try:
-                    if len(persons) > 1:
-                            persons_str = '{} and {}'.format(', '.join(persons[:-1]), persons[-1])
+                    if len(last_seen_person) > 1:
+                            persons_str = '{} and {}'.format(', '.join(last_seen_person[:-1]), last_seen_person[-1])
                     else:
-                        persons_str = persons[0]
+                        persons_str = last_seen_person[0]
 
                     logger.info("See {} for the first time".format(persons_str))
                     mirror_greet(persons_str)
